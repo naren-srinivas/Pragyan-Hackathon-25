@@ -5,7 +5,7 @@ from constants import INPUT_PARAMETERS, COLOR_SCHEME
 import pandas as pd
 
 # Initialize Gemini API
-API_KEY = "AIzaSyALd23GvLSzMP9Uorq5fvuMZFQp5hH49e4"  # Replace with your Gemini API key
+API_KEY = "AIzaSyBY9gpL3qQYsUoXNt76nJOUa04NBvdKX_M"  # Replace with your Gemini API key
 model = ConstructionModel(API_KEY)
 
 # UI Configuration
@@ -43,7 +43,6 @@ def generate_insights(location, inputs, custom_params):
             
     # Add custom parameters to the prompt
     if custom_params:
-        prompt += "\nAdditional Parameters:"
         for param, value in custom_params.items():
             prompt += f"\n- {param}: {value}"
             
@@ -65,11 +64,13 @@ def generate_insights(location, inputs, custom_params):
             [DEEP_INSIGHT] Detailed analysis of the corresponding insight of at least 5 to 6 line explaining the complete methodology of the relationships including location-specific factors, historical data, and industry benchmarks...
             [INSIGHT] Another insight...
             [DEEP_INSIGHT] Its corresponding detailed analysis...
+            Mention the location in the Insights as well
             """
-
+    print(prompt)
     # Get Gemini Response
     try:
         response = model.generate_insights(prompt)
+        print(response)
         if not response:  # Handle empty responses
             st.error("Failed to get valid response from AI model")
             return {}, [], []
@@ -133,9 +134,15 @@ def main():
 
     /* Content Area Styling */
     div[data-testid="stExpander"] > div > div {{
-        background-color: {COLOR_SCHEME["primary"]} !important;
-        padding: 15px !important;
-        border-radius: 0 0 8px 8px !important;
+    background-color: {COLOR_SCHEME["primary"]} !important;
+    padding: 25px !important;  /* Increased from 15px */
+    border-radius: 0 0 12px 12px !important;  /* Larger radius */
+    margin: 15px 0 !important;  /* Added margin */
+    width: 100% !important;  /* Full width */
+    min-height: 150px !important;  /* Minimum height */
+    font-size: 16px !important;  /* Larger text */
+    line-height: 1.6 !important;  /* Better spacing */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;  /* Added depth */
     }}
 
     /* Deep Insights Text */

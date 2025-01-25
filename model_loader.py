@@ -26,3 +26,5 @@ class ConstructionModel:
         except GoogleAPIError as e:
             print(f"API Error: {str(e)}")
             return ""
+        
+        #tools=[{"google_search_retrieval": {}}],
