@@ -51,7 +51,6 @@ def generate_insights(location, inputs, custom_params):
             1. Numerical predictions for key metrics
             2. Causal relationships between parameters (as [INSIGHT])
             3. Detailed methodology analysis (as [DEEP_INSIGHT])
-            4. Actionable recommendations
             
             Use this format: The output reponse must be exactly like this ( if the metric is increasing, use Positive number, else use negative)
             Always give only numbers for all the Metrics
@@ -61,10 +60,20 @@ def generate_insights(location, inputs, custom_params):
             [METRIC] ROI: A%
             
             [INSIGHT] The change in parameter {x} causes a change in parameter {y} due to {reason}.
-            [DEEP_INSIGHT] Detailed analysis of the corresponding insight of at least 5 to 6 line explaining the complete methodology of the relationships including location-specific factors, historical data, and industry benchmarks...
+            [DEEP_INSIGHT] IT MUST BE VERY BIG. IMPORTANT. Detailed analysis of the corresponding insight of at 
+            least 8 to 10 lines explaining the complete methodology of the relationships including 
+            location-specific factors, historical data, and industry benchmarks. Also include some sort of a mathematical relation in the explanation.
             [INSIGHT] Another insight...
-            [DEEP_INSIGHT] Its corresponding detailed analysis...
+            [DEEP_INSIGHT] Its corresponding detailed analysis just like above
             Mention the location in the Insights as well
+            
+            When including mathematical equations:
+            - Use LaTeX format without backticks
+            - Wrap equations in $$ for block formatting
+            Example: $$ROI = \\frac{{Net\\ Profit}}{{Total\\ Investment}} \\times 100\%$$
+            
+            It is MANDATORY TO GIVE A CORRECT MATHEMATICAL EQUATION WHEN GIVING THE DEEP INSIGHT. AND THE DEEP INSIGHT MUST BE VERY VERY VERY BIG.
+
             """
     print(prompt)
     # Get Gemini Response
@@ -155,6 +164,16 @@ def main():
         border-radius: 4px !important;
         margin: 8px 0 !important;
     }}
+    
+     /* Equation styling */
+    .latex {{
+        font-size: 1.2rem;
+        padding: 15px;
+        background-color: {COLOR_SCHEME['background']};
+        border-radius: 5px;
+        margin: 10px 0;
+    }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -175,20 +194,30 @@ def main():
         # Insights Section with Full Blue Boxes
         st.subheader("Key Insights")
         if insights or deep_insights:
-            # Create pairs using zip_longest
             from itertools import zip_longest
-            
+            import re  # Import regex module
+
             for idx, (insight, deep_insight) in enumerate(zip_longest(insights, deep_insights, fillvalue="Analysis not available")):
+                # Generate insight text
                 insight_text = f"Insight #{idx+1}" if not insight else insight
+                
                 with st.expander(f"🔍 {insight_text}", expanded=False):
+                    # Display detailed analysis
                     st.markdown(f"""
                     <div class="deep-insight">
                         📚 <strong>Detailed Analysis:</strong><br><br>
                         {deep_insight if deep_insight else "No detailed analysis available"}
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    # Extract and render LaTeX equations
+                    if deep_insight:
+                        equations = re.findall(r'\$\$(.+?)\$\$', deep_insight)
+                        for eq in equations:
+                            st.latex(eq)
         else:
             st.warning("No insights generated for this scenario")
+    
         # Visualizations
         st.subheader("Impact Analysis")
         fig_bar, fig_gauge = create_visualizations(metrics)

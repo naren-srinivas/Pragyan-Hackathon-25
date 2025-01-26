@@ -5,8 +5,9 @@ from constants import COLOR_SCHEME
 import plotly.graph_objects as go
 import streamlit as st
 
+
 def parse_llm_response(response):
-    """Robust parsing that handles various response formats"""
+    """Robust parsing that handles various response formats with equation support"""
     metrics = {
         "Total Cost": None,
         "Delay Risk": None,
@@ -17,38 +18,59 @@ def parse_llm_response(response):
     insights = []
     deep_insights = []
 
-    # Clean response
-    clean_response = re.sub(r'\*\*|\n{2,}', '\n', response).strip()
-    
-    # Split into sections
-    sections = re.split(r'(\[METRIC\]|\[INSIGHT\]|\[DEEP_INSIGHT\])', clean_response)
-    sections = [s.strip() for s in sections if s.strip()]
+    try:
+        # Preprocess equations and clean response
+        processed_response = re.sub(
+            r"'''\s*((?:.|\n)+?)\s*'''",  # Match content between '''
+            r'$$\1$$',  # Replace with LaTeX blocks
+            response
+        )
+        clean_response = re.sub(r'\*\*|\n{2,}', '\n', processed_response).strip()
+        
+        # Split into sections with improved regex
+        section_regex = r'(\[METRIC\]|\[INSIGHT\]|\[DEEP_INSIGHT\])'
+        sections = re.split(section_regex, clean_response)
+        sections = [s.strip() for s in sections if s.strip()]
 
-    current_section = None
-    
-    for section in sections:
-        if section == '[METRIC]':
-            current_section = 'METRIC'
-        elif section == '[INSIGHT]':
-            current_section = 'INSIGHT'
-        elif section == '[DEEP_INSIGHT]':
-            current_section = 'DEEP_INSIGHT'
-        else:
+        current_section = None
+        metric_pattern = re.compile(r'^\s*([^:]+):\s*([+-]?\d+\.?\d*)%?\s*$')
+
+        for section in sections:
+            if section in ('[METRIC]', '[INSIGHT]', '[DEEP_INSIGHT]'):
+                current_section = section[1:-1]  # Remove brackets
+                continue
+
             if current_section == 'METRIC':
-                # Handle metrics
-                metric_match = re.match(r'(.*?):\s*([+-]?\d+\.?\d*)%?', section)
-                if metric_match:
-                    metric, value = metric_match.groups()
+                # Handle metrics with improved validation
+                match = metric_pattern.match(section)
+                if match:
+                    metric_name, metric_value = match.groups()
+                    metric_name = metric_name.strip()
                     try:
-                        metrics[metric.strip()] = float(value)
-                    except (ValueError, KeyError):
+                        if metric_name in metrics:
+                            metrics[metric_name] = float(metric_value)
+                    except (ValueError, TypeError):
                         pass
-            elif current_section == 'INSIGHT':
-                insights.append(section.strip())
-            elif current_section == 'DEEP_INSIGHT':
-                deep_insights.append(section.strip())
 
-    return metrics, insights, deep_insights
+            elif current_section == 'INSIGHT':
+                if section:
+                    insights.append(section)
+
+            elif current_section == 'DEEP_INSIGHT':
+                if section:
+                    # Format equations for Streamlit rendering
+                    formatted_section = re.sub(
+                        r'\$\$(.+?)\$\$',
+                        r'<br><div style="text-align: center;">\$\1\$</div><br>',
+                        section
+                    )
+                    deep_insights.append(formatted_section)
+
+        return metrics, insights, deep_insights
+
+    except Exception as e:
+        print(f"Error parsing response: {str(e)}")
+        return {}, [], []
 
 import streamlit as st
 import pandas as pd
