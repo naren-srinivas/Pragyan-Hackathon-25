@@ -1,5 +1,6 @@
 # Construction AI Analyst 🏗️
 
+[![Website](https://img.shields.io/badge/Website-orange?style=for-the-badge)](https://constructionaianalyst.streamlit.app/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io/)
 [![Gemini](https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -7,6 +8,8 @@
 An AI-powered analytics tool for construction project risk assessment and impact analysis.
 
 ![App Screenshot](assets/screenshot.png) <!-- Add actual screenshot later -->
+
+
 
 ## Features ✨
 
