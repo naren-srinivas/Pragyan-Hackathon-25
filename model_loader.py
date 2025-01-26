@@ -12,7 +12,7 @@ class ConstructionModel:
         try:
             response = self.model.generate_content(
                 prompt,
-                tools=[{"google_search_retrieval": {}}],
+                
                 generation_config={
                     "temperature": 0.2,
                     "max_output_tokens": 2000

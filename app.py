@@ -174,21 +174,21 @@ def main():
         
         # Insights Section with Full Blue Boxes
         st.subheader("Key Insights")
-        if insights:
-            for idx, (insight, deep_insight) in enumerate(zip(insights, deep_insights)):
-                with st.expander(f"🔍 {insight}", expanded=False):
+        if insights or deep_insights:
+            # Create pairs using zip_longest
+            from itertools import zip_longest
+            
+            for idx, (insight, deep_insight) in enumerate(zip_longest(insights, deep_insights, fillvalue="Analysis not available")):
+                insight_text = f"Insight #{idx+1}" if not insight else insight
+                with st.expander(f"🔍 {insight_text}", expanded=False):
                     st.markdown(f"""
                     <div class="deep-insight">
                         📚 <strong>Detailed Analysis:</strong><br><br>
-                        {deep_insight}
+                        {deep_insight if deep_insight else "No detailed analysis available"}
                     </div>
                     """, unsafe_allow_html=True)
-            
-            if len(deep_insights) > len(insights):
-                st.warning(f"Found {len(deep_insights)-len(insights)} additional analyses without matching insights")
         else:
             st.warning("No insights generated for this scenario")
-        
         # Visualizations
         st.subheader("Impact Analysis")
         fig_bar, fig_gauge = create_visualizations(metrics)
@@ -203,20 +203,25 @@ def main():
             if metrics:
                 df = pd.DataFrame(metrics.items(), columns=["Metric", "Value"])
                 df = df.dropna(subset=["Value"])
+                
                 if not df.empty:
-                    df["Value"] = pd.to_numeric(df["Value"], errors="coerce")
+                    # Convert values to percentages by multiplying by 100
+                    df["Value"] = pd.to_numeric(df["Value"], errors="coerce") * 100
                     df = df.dropna(subset=["Value"])
-                    df["Value"] = df["Value"].apply(format_metric_value)
+                    
+                    # Format for display
+                    df["Formatted"] = df["Value"].apply(format_metric_value)
                     
                     st.dataframe(
-                        df,
+                        df[["Metric", "Formatted"]],
                         hide_index=True,
                         use_container_width=True,
                         column_config={
                             "Metric": st.column_config.TextColumn(width="medium"),
-                            "Value": st.column_config.NumberColumn(
+                            "Formatted": st.column_config.NumberColumn(
                                 format="%+.1f %%",
-                                help="Percentage change from baseline"
+                                help="Percentage change from baseline",
+                                label="Value"
                             )
                         }
                     )
